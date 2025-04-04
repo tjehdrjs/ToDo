@@ -16,7 +16,7 @@ async def list_task():
 
 # /tasks 주소에 POST 방식으로 접근하면 이 함수가 실 행된다.
 # (예: 새로운 할 일을 추가하는 기능
-@router.get("/tasks")
+@router.post("/tasks")
 async def create_task():
     pass
 
