@@ -8,11 +8,11 @@ packages = [{ include = "api" }]
 # 패키지: Python 파일들이 모여 있는 폴더를 의미한다. 여기서는 "api" 폴더를 포함한다
 
 [tool.poetry.dependencies] # 의존성: 이 프로젝트가 실행되기 위해 필요한 패키지들의 목록이다.
-Python = "^3.12" # Python 버전 3.12 이상을 사용한다.
-fastapi = "^0.115.12" # FastAPI를 만들기 위한 프레임 워크이다.
-uvicorn = {extras = ["standard"], version = "^0.34.0"}
+Python = "^3.12"                                         # Python 버전 3.12 이상을 사용한다.
+fastapi = "^0.115.12"                                    # FastAPI를 만들기 위한 프레임 워크이다.
+uvicorn = { extras = ["standard"], version = "^0.34.0" }
 # Uvicorn은 FastAPI 앱을 실행하는 서버 도구이다. standard는 필요한 기능을 포함한 옵션이다.
 
 [build-system] # 프로젝트를 빌드(포장)할 때 사용하는 시스템 설정이다.
-requires = ["poetry-core>"] # 빌드에 필요한 도구 이름이다.
+requires = ["poetry-core"]                # 빌드에 필요한 도구 이름이다.
 build-backend = "poetry.core.masonry.api" # 백엔드: 빌드 과정을 실제로 실행해 주는 내부 도구이다.
