@@ -58,6 +58,6 @@ class Done(Base):
     # * 1:1 관계 유지: dones.id = tasks.id 인 상태
     # * 완료된 작업만 이 테이블에 기록됨
 
-    Task = relationship("Task", back_populates="donne")
+    task = relationship("Task", back_populates="done")
     # * 연결된 Task 객체를 참조할 수 있음
     # * task: Done - task 방향 참조
