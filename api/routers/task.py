@@ -63,18 +63,32 @@ async def list_task(db: AsyncSession = Depends(get_db)):
 
 # ----------------------------------------------------------
 # [2] 할 일 추가 (POST 요청)
-# - 클라이언트가 JSON 형식으로 보낸 데이터(title)를 받아
-#   새로운 할 일을 생성하는 기능 (예: {"title": "책읽기"})
+# - 사용자가 할 일 하나를 JSON으로 보내면 서버가 저장해줍니다.
+# - (예: {"title": "책읽기"})
+# - 이 함수는 POST /tasks 주소로 요청이 왔을 떄 실행됩니다.
 # ----------------------------------------------------------
 @router.post("/tasks", response_model=task_schema.TaskCreateResponse)
-# task_body: 사용자가 보낸 데이터 요청 본문
-# TaskCreate: 사용자가 보낸 데이터(title만 포함됨)
-# TaskCreateResponse: 응답할 때 포함할 데이터(id 포함)
+# 위 줄은 "이 API는 POST 방식으로 /tasks 주소를 치려한디"는 의미 입니다.
+# - response_model은 FastAPI가 자동으로 응답 형식을 만들어주도록 하는 옵션입니다.
+#   즉, 이 API가 반환하는 응답이 TaskCreateResponse 형식임을 알려주는 것입니다.
+
+
+# 아래는 실제 실행될 함수입니다.
+# - task_body: 사용자가 보낸 JSON 데이터 - {"title": "책 읽기"}처럼 생김
+#              이 데이터는 task_schema.TaskCreate라는 데이터 형식으로 검사됩니다.
+# - db: 데이터베이스와 연결된 세션입니다.
+#       Depends(get_db)를 통해 FastAPI가 자동으로 db 연곃을 준비해줍니다.
 async def create_task(
-    task_body: task_schema.TaskCreate, db: AsyncSession = Depends(get_db)
+    task_body: task_schema.TaskCreate,  # 요청 데이터 (제목 하나만 포함됨)
+    db: AsyncSession = Depends(get_db),  # DB 연결 세션(FastAPI가 자동으로 준비)
 ):
+    # ------------------------------------------------------------------
+    # 실제로 할 일을 DB에 저장하는 부분입니다.
+    # - task_crud.create_task 함수에 db 세션과 요청 데이터를 전달합니다.
+    # - 결과로 저장된 Task 객체를 다시 반환합니다 (id 포함).
+    # ------------------------------------------------------------------
+
     return await task_crud.create_task(db, task_body)
-    # * DB에 새 Task를 저장하고, id가 포함된 응답 데이터를 반화함
 
 
 # ----------------------------------------------------------
@@ -108,21 +122,12 @@ async def update_task(
 # ----------------------------------------------------------
 # [4] 할 일 삭제 (DELETE 요청)
 # - /task/번호 형식으로 요청이 오면 해당 번호의 할 일을 삭제함
-# - 이 함수는 아직 DB가 없기 때문에 동작은 하지 않지만 구조만 정의함
 # - 실제 DB에서 해당 Task가 존재하는지 확인한 뒤 삭제 진행
 # - 삭제 성공 시 별도의 응답 본문 없이 204 상태 코드(no content)를 반환함
 # ----------------------------------------------------------
-@router.delete("/tasks/{task_id}")
 @router.delete("/tasks/{task_id}", response_model=None)
 # - task_id: 삭제할 할 일의 번호
-# - response_model이 없으므로 별도 응답 내용 없이 처리 가능 (204 No Content)
-async def delete_task(task_id: int):
-    return
-    # * 실제 구현에서는 삭제 후 상태 코드나 메시지를 반환할 수 있음
-    #   성공 시 상태 코드(예: 204)나 메시지를 응답으로 보낼 수  있음
-
-
-# - response_model= None: 별도 응답 데이터를 보내지 않겠다는 뜻 (204 응답에 적함)
+# - response_model=None: 별도 응답 데이터를 보내지 않겠다는 뜻 (204 응답에 적합)
 async def delete_task(task_id: int, db: AsyncSession = Depends(get_db)):
     # * async: 이 함수가 '비동기 함수'일을 나타냄
     #   - DB와 통신하는 동안 서버가 멈추지 않고 다른 요청도 처리할 수 있음
