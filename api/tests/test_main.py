@@ -180,45 +180,31 @@ async def test_done_flag(async_client):
 # 이 검사를 통해 FastAPI + Pydantic이 날짜 형식을 어떻게 검사하는지 이해할 수 있습니다.
 # ------------------------------------------------------------------
 @pytest.mark.asyncio
-async def test_due_date(async_client):
+@pytest.mark.parametrize(
+    "input_param, expectation",
+    [
+        ("2024-12-01", status.HTTP_200_OK),
+        ("2024-12-32", status.HTTP_422_UNPROCESSABLE_ENTITY),
+        ("2024/12/01", status.HTTP_422_UNPROCESSABLE_ENTITY),
+        ("20241201", status.HTTP_422_UNPROCESSABLE_ENTITY),
+    ],
+)
+async def test_due_date(input_param, expectation, async_client):
     # ------------------------------------------------------------------
-    # [1] 테스트할 입력값 리스트
+    # 1. 비동기 POST 요청 전송
+    # - /tasks 경로에 JSON 데이터(title과 due_date)를 전송합니다.
+    # - input_param은 각 테스트 케이스에서 주어진 날짜 형식 문자열입니다.
     # ------------------------------------------------------------------
-    # - 각 항목은 사용자가 전송할 due_date 값입니다.
-    # - 다양한 형식과 오류 유형을 포함하여 테스트 범위를 넓힙니다.
+    response = await async_client.post(
+        "/tasks",
+        json={
+            "title": "테스트 작업",
+            "due_date": input_param,  # 현재 테스트할 날짜 문자열
+        },
+    )
     # ------------------------------------------------------------------
-    input_list = [
-        "2024-12-01",  # [OK] 올바른 날짜
-        "2024-12-32",  # [X] 존재하지 않는 날짜
-        "2024/12/01",  # [X] 구분차가 잘못된 날짜
-        "20241201",  # [X] 구분자 없이 뭉친 날짜
-    ]
+    # 2. 응답 결과 확인
+    # - 서버가 반환한 응답 상태 코드가 예상(expectation)과 일치하는지 검사합니다.
+    # - 일치하지 않으면 테스트가 실패합니다.
     # ------------------------------------------------------------------
-    # [2] 기대되는 응답 코드 리스트
-    # ------------------------------------------------------------------
-    # - 각 입력값에 대해 예상되는 서버의 응답 상태 코드를 정리합니다.
-    # - 순서는 input_list와 반드시 일치해야 합니다.
-    # ------------------------------------------------------------------
-    expectation_list = [
-        status.HTTP_200_OK,
-        status.HTTP_422_UNPROCESSABLE_ENTITY,
-        status.HTTP_422_UNPROCESSABLE_ENTITY,
-        status.HTTP_422_UNPROCESSABLE_ENTITY,
-    ]
-
-    # ------------------------------------------------------------------
-    # [3] 반복문을 통해 모든 케이스 테스트
-    # ------------------------------------------------------------------
-    # - zip()을 사용해 input과 기대값을 함께 가져옵니다.
-    # - 각 케이스에 대해 POST 요청을 보내고 상태 코드가 예상과 일치하는지 확인합니다.
-    # ------------------------------------------------------------------
-    for input_param, expectation in zip(input_list, expectation_list):
-        response = await async_client.post(
-            "/tasks",
-            json={
-                "title": "테스트 작업",
-                "due_date": input_param,  # 현재 테스트할 입력값
-            },
-        )
-        # 결과 겁증: 응답 상태 코드가 기대값과 일치해야 통과
-        assert response.status_code == expectation
+    assert response.status_code == expectation
