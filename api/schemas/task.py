@@ -6,6 +6,8 @@
 # - FastAPI에서는 Pydantic 모델을 사용해 구조를 정의한다.
 # -----------------------------------------------------------
 
+import datetime  # 날짜와 시간을 다룰수 있는 파이썬 내장 모듈 (예: 마감일 등 처리에 사용됨)
+
 from pydantic import BaseModel, Field, ConfigDict
 
 # - BaseModel: 모든 데이터 구조의 기본이 되는 클래스
@@ -26,6 +28,12 @@ class TaskBase(BaseModel):
     )
     # * title: 할 일의 제목
     # * str | None: 문자열이거나 값이 없을 수도 있음 (입력을 안 해도 에러는 나지 않음)
+
+    due_date: datetime.date | None = Field(None, examples="2025-05-15")
+    # * due_date: 할 일의 마감일(언제까지 해야 하는지)
+    # * datetime.date | None: 날짜 형식이거나 없을 수도 있음
+    #       예) 2025-05-15처럼 연-월-일 형식의 문자열을 입력
+    # * 마감일은 선택사항이므로 입력하지 않아도 에러가 나지 않음
 
 
 # ----------------------------------------------------------

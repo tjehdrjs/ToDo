@@ -111,6 +111,8 @@ async def update_task(
     original.title = task_create.title
     # * 기존 Task 객체의 title 값을 수정함
 
+    original.due_date = task_create.due_date
+    # * 새로 추가된 due_date(마감일)도 함께 수정함
     db.add(original)
     # * 수정된 객체를 세션에 등록 (SQLAlchemy는 상태 변경을 추적함)
 
@@ -163,6 +165,7 @@ async def get_tasks_with_done(db: AsyncSession) -> list[tuple[int, str, bool]]:
         select(
             task_model.Task.id,
             task_model.Task.title,
+            task_model.Task.due_date,
             task_model.Done.id.isnot(None).label("done"),
             # * Done 테이블에 이 할 일(Task)의 완료 기록이 있으면 - True
             # * Done 테이블에 없으면 - False (아직 완료 안 된 상태)

@@ -101,9 +101,8 @@ async def test_create_and_read(async_client):
     assert response.status_code == status.HTTP_200_OK  # 응답이 200 OK인지 확인
 
     response_obj = response.json()
-    assert (
-        response_obj["title"] == "테스트 작업"
-    )  # 응답 JSON에 title이 잘 들어갔는지 확인
+    assert response_obj["title"] == "테스트 작업"
+    # 응답 JSON에 title이 잘 들어갔는지 확인
 
     # ------------------------------------------------------------------
     # 2. 전체 할 일 목록 조회 (GET 요청)
@@ -136,9 +135,8 @@ async def test_done_flag(async_client):
     # - 즉, 우리가 방금 추가한 "테스츠 작업2"가 완료 처리됨
     # ------------------------------------------------------------------
     response = await async_client.put("/tasks/1/done")
-    assert (
-        response.status_code == status.HTTP_200_OK
-    )  # 완료 처리 요청이 성공했는지 확인
+    assert response.status_code == status.HTTP_200_OK
+    # 완료 처리 요청이 성공했는지 확인
 
     # ------------------------------------------------------------------
     # [3] 이미 완료된 할 일을 다시 완료 처리 시도 (PUT 요청)
@@ -146,18 +144,16 @@ async def test_done_flag(async_client):
     # - 하지만 이미 완료된 작업이므로 서버가 400 Bad Request를 반환해야 함
     # ------------------------------------------------------------------
     response = await async_client.put("/tasks/1/done")
-    assert (
-        response.status_code == status.HTTP_400_BAD_REQUEST
-    )  # 중복 완료 요청 - 잘못된 요청 처리 확인
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    # 중복 완료 요청 - 잘못된 요청 처리 확인
 
     # ------------------------------------------------------------------
     # [4] 완료 처리된 작업을 완료 해제 (DELETE 요청)
     # - /tasks/1/done 주소로 요청을 보내면 완료 상대가 해제됨 (False로 변경됨)
     # ------------------------------------------------------------------
     response = await async_client.delete("/tasks/1/done")
-    assert (
-        response.status_code == status.HTTP_200_OK
-    )  # 정상적으로 완료 해제되었는지 확인
+    assert response.status_code == status.HTTP_200_OK
+    # 정상적으로 완료 해제되었는지 확인
 
     # ------------------------------------------------------------------
     # [5] 이미 완료 해제된 작업을 다시 해제하려고 시도
@@ -165,6 +161,30 @@ async def test_done_flag(async_client):
     # - 따라서 400 Not Found 응답을 보내는 것이 올바름
     # ------------------------------------------------------------------
     response = await async_client.delete("/tasks/1/done")
-    assert (
-        response.status_code == status.HTTP_404_NOT_FOUND
-    )  # 존재하지 않는 상태를 다시 요청 - 실패 응답 확인
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    # 존재하지 않는 상태를 다시 요청 - 실패 응답 확인
+
+
+# ------------------------------------------------------------------
+# [테스트 함수] 마감일(due_date)이 포함된 할 일 생성 테스트
+# - 사용자가 title과 함꼐 due_date를 보낼 수 있는지 확인
+# - 예: {"title": "테스트 작업", "due_date": "2024-12-01"}
+# ------------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_due_date(async_client):
+    # ------------------------------------------------------------------
+    # 1. POST 요청을 보냄
+    # - /tasks 주소에 JSON 데이터로 할 일을 하나 추가함
+    # - title과 due_date를 함꼐 전송
+    # ------------------------------------------------------------------
+    response = await async_client.post(
+        "/tasks",
+        json={"title": "테스트 작업", "due_date": "2024-12-32"},  # - 마감일 포함
+    )
+
+    # ------------------------------------------------------------------
+    # 2. 응답 상태 코드 확인
+    # - 200 OK이면 정상적으로 저장되었다는 뜻
+    # - 즉, 서버가 마감일이 포함된 데이터를 잘 처리한 것
+    # ------------------------------------------------------------------
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
